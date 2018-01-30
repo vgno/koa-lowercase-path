@@ -1,9 +1,23 @@
 'use strict';
 
 const expect = require('expect');
+const Koa = require('koa');
+const request = require('supertest');
 const lowercasePath = require('../');
 
 describe('koa-lowercase-path', () => {
+    describe('running in Koa', () => {
+        it('should work in a normal scenarion', (done) => {
+            const app = new Koa();
+            app.use(lowercasePath());
+
+            request(app.listen())
+                .get('/fOObAr')
+                .expect('Location', '/foobar')
+                .expect(301, done);
+        });
+    });
+
     describe('defer = false', () => {
         it('should redirect on url and path has uppercase characters', async () => {
             const mock = createMock('/fOo');
