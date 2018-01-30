@@ -1,6 +1,6 @@
 {
   "name": "koa-lowercase-path",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Koa middleware that converts path to lowercase if not already",
   "main": "index.js",
   "scripts": {
