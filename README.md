@@ -2,6 +2,8 @@
 
 Koa middleware that converts path to lowercase if not already.
 
+**Notice: koa-lowercase-path@2 supports koa@2; if you want to use this module with koa@1, please use koa-lowercase-path@1.**
+
 [![Build Status](https://img.shields.io/travis/vgno/koa-lowercase-path/master.svg?style=flat-square)](http://travis-ci.org/vgno/koa-lowercase-path) [![Coverage Status](https://img.shields.io/coveralls/vgno/koa-lowercase-path/master.svg?style=flat-square)](https://coveralls.io/r/vgno/koa-lowercase-path) [![npm](https://img.shields.io/npm/v/koa-lowercase-path.svg?style=flat-square)](https://www.npmjs.com/package/koa-lowercase-path)
 
 ## Installation
@@ -11,8 +13,8 @@ npm install koa-lowercase-path
 
 ## API
 ```js
-var koa = require('koa');
-var app = koa();
+const Koa = require('koa');
+const app = new Koa();
 app.use(require('koa-lowercase-path')(opts));
 ```
 
@@ -25,15 +27,15 @@ app.use(require('koa-lowercase-path')(opts));
 
 ## Example
 ```js
-var koa = require('koa');
-var lowercasePath = require('koa-lowercase-path');
+const Koa = require('koa');
+const lowercasePath = require('koa-lowercase-path');
 
-var app = koa();
+const app = koa();
 
 app.use(lowercasePath());
 
-app.use(function *(){
-  this.body = 'Hello World';
+app.use(ctx => {
+  ctx.body = 'Hello World';
 });
 
 app.listen(3000);
