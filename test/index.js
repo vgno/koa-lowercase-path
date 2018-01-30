@@ -1,126 +1,110 @@
 'use strict';
 
-var expect = require('expect');
-var lowercasePath = require('../index.js');
+const expect = require('expect');
+const lowercasePath = require('../');
 
-describe('koa-lowercase-path', function() {
-    describe('defer = false', function() {
-        it('should redirect on url and path has uppercase characters', function() {
-            var mock = createMock('/fOo');
-            var lowercasePathMock = lowercasePath({defer: false}).bind(mock.this);
-            var lowercasePathMockGenerator = lowercasePathMock();
-            lowercasePathMockGenerator.next();
+describe('koa-lowercase-path', () => {
+    describe('defer = false', () => {
+        it('should redirect on url and path has uppercase characters', async () => {
+            const mock = createMock('/fOo');
+            await lowercasePath({defer: false})(mock.ctx, mock.next);
+
             expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo');
-            expect(mock.this.status).toBe(301);
+            expect(mock.ctx.status).toBe(301);
         });
     });
 
-    describe('chained = false', function() {
-        it('should not redirect on url that already have been modified', function() {
-            var mock = createMock('/fOo/');
+    describe('chained = false', () => {
+        it('should not redirect on url that already have been modified', async () => {
+            const mock = createMock('/fOo/');
 
             // Mock that something has made a redirect before us
-            mock.this.status = 301;
-            mock.this.body = 'Redirecting to …';
-            mock.this.response = {
+            mock.ctx.status = 301;
+            mock.ctx.body = 'Redirecting to …';
+            mock.ctx.response = {
                 get: function() {
                     return '/fOo';
                 }
             };
 
-            var lowercasePathMock = lowercasePath({chained: false}).bind(mock.this);
-            var lowercasePathMockGenerator = lowercasePathMock();
-            lowercasePathMockGenerator.next();
-            lowercasePathMockGenerator.next();
+            await lowercasePath({chained: false})(mock.ctx, mock.next);
+
             expect(mock.redirectMock).toNotHaveBeenCalled();
-            expect(mock.this.status).toBe(301);
+            expect(mock.ctx.status).toBe(301);
         });
     });
 
-    describe('chained = true & defer = true', function() {
-        describe('redirect', function() {
-            it('should redirect on url that already have been modified and path has upercase characters', function() {
-                var mock = createMock('/fOo/');
+    describe('chained = true & defer = true', () => {
+        describe('redirect', () => {
+            it('should redirect on url that already have been modified and path has upercase characters', async () => {
+                const mock = createMock('/fOo/');
 
                 // Mock that something has made a redirect before us
-                mock.this.status = 301;
-                mock.this.body = 'Redirecting to …';
-                mock.this.response = {
+                mock.ctx.status = 301;
+                mock.ctx.body = 'Redirecting to …';
+                mock.ctx.response = {
                     get: function() {
                         return '/fOo';
                     }
                 };
 
-                var lowercasePathMock = lowercasePath().bind(mock.this);
-                var lowercasePathMockGenerator = lowercasePathMock();
-                lowercasePathMockGenerator.next();
-                lowercasePathMockGenerator.next();
+                await lowercasePath()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo');
-                expect(mock.this.status).toBe(301);
+                expect(mock.ctx.status).toBe(301);
             });
 
-            it('should redirect on simple path and path has uppercase characters', function() {
-                var mock = createMock('/fOo');
-                var lowercasePathMock = lowercasePath().bind(mock.this);
-                var lowercasePathMockGenerator = lowercasePathMock();
-                lowercasePathMockGenerator.next();
-                lowercasePathMockGenerator.next();
+            it('should redirect on simple path and path has uppercase characters', async () => {
+                const mock = createMock('/fOo');
+                await lowercasePath()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo');
-                expect(mock.this.status).toBe(301);
+                expect(mock.ctx.status).toBe(301);
             });
 
-            it('should redirect on simple path and path has uppercase characters and query', function() {
-                var mock = createMock('/fOo?hello=wOrld', 'hello=wOrld');
-                var lowercasePathMock = lowercasePath().bind(mock.this);
-                var lowercasePathMockGenerator = lowercasePathMock();
-                lowercasePathMockGenerator.next();
-                lowercasePathMockGenerator.next();
+            it('should redirect on simple path and path has uppercase characters and query', async () => {
+                const mock = createMock('/fOo?hello=wOrld', 'hello=wOrld');
+                await lowercasePath()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo?hello=wOrld');
-                expect(mock.this.status).toBe(301);
+                expect(mock.ctx.status).toBe(301);
             });
 
-            it('should redirect on UTF-8 path and path has uppercase characters', function() {
-                var mock = createMock('/fØö/БАЯ');
-                var lowercasePathMock = lowercasePath().bind(mock.this);
-                var lowercasePathMockGenerator = lowercasePathMock();
-                lowercasePathMockGenerator.next();
-                lowercasePathMockGenerator.next();
+            it('should redirect on UTF-8 path and path has uppercase characters', async () => {
+                const mock = createMock('/fØö/БАЯ');
+                await lowercasePath()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/føö/бая');
-                expect(mock.this.status).toBe(301);
+                expect(mock.ctx.status).toBe(301);
             });
         });
 
-        describe('not redirect', function() {
-            it('should not redirect on simple path that is all lowercase', function() {
-                var mock = createMock('/foo');
-                var lowercasePathMock = lowercasePath().bind(mock.this);
-                var lowercasePathMockGenerator = lowercasePathMock();
-                lowercasePathMockGenerator.next();
-                lowercasePathMockGenerator.next();
+        describe('not redirect', () => {
+            it('should not redirect on simple path that is all lowercase', async () => {
+                const mock = createMock('/foo');
+                await lowercasePath()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(undefined);
+                expect(mock.ctx.status).toBe(undefined);
             });
 
-            it('should not redirect on simple path that is all lowercase and have query', function() {
-                var mock = createMock('/foo?hello=wOrld', 'hello=wOrld');
-                var lowercasePathMock = lowercasePath().bind(mock.this);
-                var lowercasePathMockGenerator = lowercasePathMock();
-                lowercasePathMockGenerator.next();
-                lowercasePathMockGenerator.next();
+            it('should not redirect on simple path that is all lowercase and have query', async () => {
+                const mock = createMock('/foo?hello=wOrld', 'hello=wOrld');
+                await lowercasePath()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(undefined);
+                expect(mock.ctx.status).toBe(undefined);
             });
 
-            it('should not redirect on when body is defined', function() {
-                var mock = createMock('/fOo?hello=wOrld', 'hello=wOrld');
-                var lowercasePathMock = lowercasePath().bind(mock.this);
-                var lowercasePathMockGenerator = lowercasePathMock();
-                lowercasePathMockGenerator.next();
-                mock.this.body = 'some content';
-                mock.this.status = 200;
-                lowercasePathMockGenerator.next();
+            it('should not redirect on when body is defined', async () => {
+                const mock = createMock('/fOo?hello=wOrld', 'hello=wOrld');
+                mock.ctx.body = 'some content';
+                mock.ctx.status = 200;
+
+                await lowercasePath()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(200);
+                expect(mock.ctx.status).toBe(200);
             });
         });
     });
@@ -128,14 +112,15 @@ describe('koa-lowercase-path', function() {
 
 function createMock(originalUrl, querystring) {
     querystring = querystring || '';
-    var redirectMock = expect.createSpy();
+    const redirectMock = expect.createSpy();
     return {
         redirectMock: redirectMock,
-        this: {
+        ctx: {
             originalUrl: originalUrl,
             querystring: querystring,
             status: undefined,
             redirect: redirectMock
-        }
+        },
+        next: async () => {}
     };
 }
